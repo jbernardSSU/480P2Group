@@ -1,5 +1,8 @@
 # 480P2Group
 
+To run with testing statements: python3 p2.py [option 1, 2 or 3 to print various testing statements]
+To run without: python3 p2.py
+
 Current issue:
 
 Permutation of length 8, in least ideal starting order, seems to not find a solution
