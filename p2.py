@@ -6,55 +6,84 @@ import sys
 import timeit
 import copy
 from collections import deque
-testingFunctions = True if sys.argv[1] == '1' else False
-testingValues = True if sys.argv[1] == '2' else False
-testingQueueContents = True if sys.argv[1] == '3' else False
+# program can be invoked with 1, 2, or 3 to activate certain
+# statements for testing (i.e. "python3 p2.py 1")
+if (len(sys.argv) > 1):
+    testingFunctions = True if sys.argv[1] == '1' else False
+    testingValues = True if sys.argv[1] == '2' else False
+    testingQueueContents = True if sys.argv[1] == '3' else False
+else:
+    testingFunctions = False
+    testingValues = False
+    testingQueueContents = False
     
 def main():
     print ("Enter permutation to be sorted:")
     values = [int(x) for x in input().split()]
-    numElements = len(values)
-    # calculate number of substrings: (n(n+1)/2) - n
-    numSubstrings = (numElements * (numElements + 1) / 2) - numElements
-    if (testingValues):
-        print ("Values Array: ", values)
-        print ("Number of elements: ", numElements)
-        print ("Number of substrings: ", int(numSubstrings))
-
     sortedValues = values.copy()
     if (testingValues):
+        print ("Values Array: ", values)
         print ("sortedValues (before sort): ", sortedValues)
     sortedValues.sort()
     if (testingValues):
         print ("sortedValues (after sort): ", sortedValues)
-    numBadPositions (values, sortedValues)
-    startTime = timeit.default_timer()
+
+    startTime = timeit.default_timer() # start timer
+    # call bfs, which will return the number of nodesVisited and queue size
     nodesVisited, qSize = (bfs (values, sortedValues))
-    endTime = timeit.default_timer()
-    time = endTime - startTime
+    endTime = timeit.default_timer() # end timer
+    time = endTime - startTime # calculate total time
+    # print final stats
     printStats (nodesVisited, qSize, time)
 
-
 def bfs (currentList, goalList):
-    q = deque()
-    q.append(currentList)
+    q = deque() # establish a queue
+    q.append(currentList) # add our root node to it
+    #nodesVisited will increment every time we pop a node from the queue
     nodesVisited = 0
+    
+    # parentID, parents and kids all work together to track which nodes are parents
+    # to each successive set of children we expand, in order to print the solution path.
+    # Each time we pop a node from the queue to expand, we say that that node is now
+    # a parent, and add it to the parents dictionary with a key value of parentID.
+    # At the same time, each child that is spawned from this parent will be added to
+    # the kids array, along with the value of parentID in the indice just before it.
+    # When we've found our solution node, parentID will have been incremented to some
+    # given value, so we use that as our key within parents to find that first parent.
+    # Once found, we take that node value and do a search through the kids array because
+    # it will be present there too from when it was first expanded as a child.  Once found,
+    # we'll look at the index location just before it, because that's where its parentID
+    # value will be, then, we use that value as a key to find its parent within parents,
+    # and the process repeats until we hit a -1 as a key, which means we've hit the root node.
     parentID = -1
     parents = {}
     kids = []
 
+    # begin process of building the queue with permutations
     while (len(q) != 0):
         if (testingQueueContents):
             print ("Current Queue: ", q)
         child = q.popleft()
+        # check right away if the root is the goal
         if (child == goalList):
             print (">> INPUT ALREADY SORTED <<")
             return (nodesVisited, len(q))
-        parents[parentID] = child
-        print ("State: ", child)
+        parents[parentID] = child # add to parents dict with the parentID
+        if (testingValues):
+            print ("State being expanded: ", child)
+        # childAdded is used to confirm whether a parent had any valid children to be added to the queue.
+        # If it does, childAdded is incremented and allows parentID to be incremented farther below.
+        # Below, there are checks to make sure no duplicates enter the queue, and because of this, there
+        # are cases where a given parent node we're expanding has no valid children to be added.  If that's
+        # the case, then childAdded will remain 0, and parentID won't be incremented.  Basically, what happens
+        # is that a parent with no valid children, without this check, will be added to parents dict and
+        # cause a gap in the parentIDs within kids array.  This prevents that.
         childAdded = 0
-        for n in children(child, goalList):
-            if (n == goalList): # begin process of printing the solution path
+        # So, we have our parent and begin expanding its children.  The children function will take the parent
+        # node and find all of its children through reversals.
+        for n in children(child):
+            # Here, we check each child to see if they're the goal node before they even enter the queue
+            if (n == goalList):
                 print (">> SOLUTION FOUND <<")
                 print ("State: ", n)
                 print ("______PATH_______ ")
@@ -78,7 +107,11 @@ def bfs (currentList, goalList):
                     # here - only the children of the root are), and we'll loop forever.
                     if (parentKey == -100):
                         break
+                # Once we're done printing the path to the solution node, return to main and print the final stats
                 return (nodesVisited, len(q))
+            # Here is our check to see if a given child is already in the queue.  If it's not, then add it to the
+            # queue, as well as kids array with the relevant parentID.  Also increment childAdded so we know it's
+            # okay to incremement parentID as well.
             if (notInQueue(q, n)):
                 nodesVisited += 1
                 q.append(n)
@@ -88,7 +121,7 @@ def bfs (currentList, goalList):
         if (childAdded != 0): # if child was added
             parentID += 1
             childAdded = 0
-        else:
+        else: # If a parent had no valid children to be added, then delete it from the parents dict
             del parents[parentID]
         if (testingValues):
             print ("PARENTS: ", parents)
@@ -96,7 +129,7 @@ def bfs (currentList, goalList):
         if (testingFunctions):
             print (" >> bfs - FINISHED APPENDING")
 
-def children (currentChild, goal):
+def children (currentChild):
     cChild = currentChild.copy()
     setOfChildren = [] # will store the permutations we create by flipping values around
     startIdx = 0 # used to set and track the starting index to begin evaluating during each loop
@@ -198,28 +231,6 @@ def notInQueue(currentQueue, child):
         if (child == x):
             return False
     return True
-
-# numBadPositions does a comparison between the passed in array with the goal array to calculate the number
-# of values that are not in the correct positions (may or may not be useful in determining how to proceed
-# in a given algorithm - i.e. only expanding nodes from permutations with the least values in bad positions)
-# This can be flawed however, if we had a permutation such as [4, 3, 2, 1], we have all 4 values in bad
-# positions, and, using this technique, we'd obviously choose not to expand it and miss the fact that it
-# really only requires 1 reversal to put all 4 in the correct positions - doh!
-def numBadPositions (currentList, goalList):
-    if (testingFunctions):
-        print (" >> numBadPositions TOP")
-    numWrong = 0
-    for x in range(len(currentList)):
-        if (testingValues):
-            print ("Comparing ", currentList[x], " to ", goalList[x])
-        if (currentList[x] != goalList[x]):
-            numWrong = numWrong + 1
-    if (testingValues):
-        print ("Number of elements in wrong position: ", numWrong)
-
-    if (testingFunctions):
-        print (" >> numBadPositions RETURNING")
-    return numWrong
 
 def printStats (numVisited, qSize, runTime):
     print ("__Final Stats__")
