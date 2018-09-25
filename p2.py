@@ -69,8 +69,7 @@ def bfs (currentList, goalList):
             print (">> INPUT ALREADY SORTED <<")
             return (nodesVisited, len(q))
         parents[parentID] = child # add to parents dict with the parentID
-        if (testingValues):
-            print ("State being expanded: ", child)
+        print ("State being expanded: ", child)
         # childAdded is used to confirm whether a parent had any valid children to be added to the queue.
         # If it does, childAdded is incremented and allows parentID to be incremented farther below.
         # Below, there are checks to make sure no duplicates enter the queue, and because of this, there
