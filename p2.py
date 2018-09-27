@@ -55,13 +55,13 @@ def main():
     if (testingValues):
         print ("sortedValues (after sort): ", sortedValues)
 
-    startTime = timeit.default_timer() # start timer
+    #startTime = timeit.default_timer() # start timer
     # call bfs, which will return the number of nodesVisited and queue size
-    nodesVisited, qSize = (bfs (values, sortedValues))
-    endTime = timeit.default_timer() # end timer
-    time = endTime - startTime # calculate total time
+    #nodesVisited, qSize = (bfs (values, sortedValues))
+    #endTime = timeit.default_timer() # end timer
+    #time = endTime - startTime # calculate total time
     # print final stats
-    printStats (nodesVisited, qSize, time)
+    #printStats (nodesVisited, qSize, time)
 
     #ids processing
     startTime = timeit.default_timer()  # start timer
@@ -197,11 +197,12 @@ def dfs(currentList, goalList, depthLimit):
         #Go through all children of currentNode
         #Only add to the queue if they're not in the queue and not out of depthLimit
         #Also avoids cycles of length 2 by not adding own parent
-        for n in childrenNode(currentNode):
-            if(n.parent != currentNode.parent and notInQueueNode(s, n) and n.depth <= depthLimit):
-                nodesVisited += 1
-                nodeList.append(n)
-                s.appendleft(n)
+        if(currentNode.depth != depthLimit):
+            for n in childrenNode(currentNode):
+                if(n.parent != currentNode.parent and notInQueueNode(s, n)):
+                    nodesVisited += 1
+                    nodeList.append(n)
+                    s.appendleft(n)
 
     #No solutions were found at the depth limit
     return dfsSolution(nodesVisited, len(s), nodeList, False)
