@@ -1,15 +1,13 @@
 # CS480
 # Assignment: Project 2
-# Authors: Justin Bernard
+# Authors: Justin Bernard, Brandon Adamson-Rakidzich, Justin Moore
 
 import sys
 import timeit
 import copy
 from collections import deque
 
-
 #class for handling ids
-
 class node2:
     def __init__(self, key, parent, depth):
         self.key = key
@@ -20,7 +18,6 @@ class node2:
     depth = -1
 
 #class for returning solution data from dfs, for ids
-
 class dfsSolution:
     def __init__(self, nodesVisited, stackSize, nodeList, success):
         self.nodesVisited = nodesVisited
@@ -55,24 +52,23 @@ def main():
     if (testingValues):
         print ("sortedValues (after sort): ", sortedValues)
 
-    #startTime = timeit.default_timer() # start timer
+    startTimeBFS = timeit.default_timer() # start timer
     # call bfs, which will return the number of nodesVisited and queue size
-    #nodesVisited, qSize = (bfs (values, sortedValues))
-    #endTime = timeit.default_timer() # end timer
-    #time = endTime - startTime # calculate total time
+    nodesVisitedBFS, qSizeBFS = (bfs (values, sortedValues))
+    endTimeBFS = timeit.default_timer() # end timer
+    timeBFS = endTimeBFS - startTimeBFS # calculate total time
     # print final stats
-    #printStats (nodesVisited, qSize, time)
+    printStats (nodesVisitedBFS, qSizeBFS, timeBFS)
 
     #ids processing
-    startTime = timeit.default_timer()  # start timer
-    # call bfs, which will return the number of nodesVisited and queue size
-    nodesVisited, qSize, nodes = ids(values, sortedValues)
-    endTime = timeit.default_timer()  # end timer
-    time = endTime - startTime  # calculate total time
+    startTimeIDS = timeit.default_timer()  # start timer
+    # call IDS, which will return the number of nodesVisited and queue size
+    nodesVisitedIDS, qSizeIDS, nodesIDS = ids(values, sortedValues)
+    endTimeIDS = timeit.default_timer()  # end timer
+    timeIDS = endTimeIDS - startTimeIDS  # calculate total time
     # print final stats
-    print("IDS")
-    printSolution(nodes)
-    printStats(nodesVisited, qSize, time)
+    printSolution(nodesIDS)
+    printStats(nodesVisitedIDS, qSizeIDS, timeIDS)
 
 def bfs (currentList, goalList):
     q = deque() # establish a queue
@@ -107,7 +103,6 @@ def bfs (currentList, goalList):
             print (">> INPUT ALREADY SORTED <<")
             return (nodesVisited, len(q))
         parents[parentID] = child # add to parents dict with the parentID
-        print ("State being expanded: ", child)
         # childAdded is used to confirm whether a parent had any valid children to be added to the queue.
         # If it does, childAdded is incremented and allows parentID to be incremented farther below.
         # Below, there are checks to make sure no duplicates enter the queue, and because of this, there
@@ -121,9 +116,7 @@ def bfs (currentList, goalList):
         for n in children(child):
             # Here, we check each child to see if they're the goal node before they even enter the queue
             if (n == goalList):
-                print (">> SOLUTION FOUND <<")
-                print ("State: ", n)
-                print ("______PATH_______ ")
+                print ("\n______BFS PATH_______ ")
                 print (n)
                 parentKey = -100 # set parentKey
                 parent = child # set parent to child (which is the first parent to return at this point)
@@ -174,6 +167,7 @@ def ids(currentList, goalList):
         #print("depth limit is", depthLimit)
         solution = dfs(currentList, goalList, depthLimit)
         if (solution.success == True):
+            print ("\n______IDS PATH_______ ")
             return solution.nodesVisited, solution.stackSize, solution.nodeList
         depthLimit += 1
 
@@ -185,8 +179,6 @@ def dfs(currentList, goalList, depthLimit):
     s.appendleft(node2(currentList, -1, 0))
     nodeList.append(node2(currentList, -1, 0))
     while (len(s)!=0):
-
-
         currentNode = s.popleft()
 
         #If we found the node, return our solution data
@@ -289,29 +281,10 @@ def childrenNode (currentNode):
                     # (i.e. increment if it does.  Once it's = to spreadLimit, we're ready for reversal)
     spreadLimit = 2 # the current size of a subarray reversal we're looking to do
                     # (this value also continues to grow, depending on the total array size)
-    # This outer WHILE loop governs the increasing size of the subarrays we're looking to reverse
-    # (i.e. we start by looking at reversing all subarrays of size 2, adding those permutations to
-    # setOfChildren, then, we look at subarrays of size 3, 4, etc until we reach the array size itself)
-    # We can't evaluate a subarray that's bigger than the array itself, this loop prevents that.
-    # Being at the top of this loop means that we're starting over to evaluate permutations at a new subarray size
     while (spreadLimit < len(cChild.key)+1):
-        # This next WHILE loop governs the index we begin at as we start evaluating a given subarray size
-        # (i.e. when looking for subarrays of size 2 in a list of size 4, the subarrays of size 2 begin
-        # at indices 0, 1, and 2 - index 3 is the last element in the list, so if we tried to look for a
-        # a subarray of size 2 there, we'd end up going out of range.  This loop prevents that.
-        # Being at the top of this loop means that we're evaluating a new permutation for the current subarray size
         while (startIdx < len(cChild.key)-1):
             currentIdx = startIdx  # since we're starting a new permutation, currentIdx must = the startIdx
-            # This FOR loop makes sure we evaluate only the # of values we need for the subarray size
-            # we're currently looking for.  For example, with a subarray size of 2, it will only iterate
-            # twice, starting from the startIdx value.  As the subarray size increases, so will the
-            # number of iterations in this loop.
             for x in range(spreadLimit):
-                # This IF statement is checking to make sure that the current value we're looking at is NOT
-                # in the correct position (as compared to what's in the goal array).  If it's in the correct
-                # position, then we don't want to do any reversals that would move it to an incorrect position,
-                # so, we'll ignore it.  If it isn't in the correct position however, then it's something that
-                # can be included in a reversal.
                 if (1):
                 #if (cChild[currentIdx] != goal[currentIdx]):
                     # if we've found a valid value to reverse, increase spreadCount and currentIdx
@@ -323,8 +296,6 @@ def childrenNode (currentNode):
                         setOfChildren.append(newChild)
                         startIdx = startIdx + 1 # we're done with this perm, so increment startIdx for the next one
                         spreadCount = 0 # reset spreadCount to 0 for the next permutation
-            # when evaluating the last possible subarray within an array, currentIdx can go out of range and won't
-            # be caught by the 2nd WHILE loop condition, so if currentIdx == the array size, break out
             if (currentIdx == len(cChild.key)):
                 break
         # at this point, we're done evaluating all permutations of a given subarray size, so we incrememnt spreadLimit
@@ -376,7 +347,7 @@ def printStats (numVisited, qSize, runTime):
     print ("__Final Stats__")
     print ("Nodes visited: ", numVisited)
     print ("Queue size: ", qSize)
-    print ("Runtime: ", runTime, " seconds")
+    print ("Runtime: ", runTime, "seconds")
 
 #Print the path to solution
 def printSolution(nodes):
